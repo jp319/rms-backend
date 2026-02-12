@@ -1,11 +1,12 @@
 import { sql } from "drizzle-orm";
 
-import env from "@/env";
+import type { Environment } from "@/env";
+
+import envRaw from "@/env";
 import createDb from "@/shared/db";
 
-const db = createDb(env);
-
-const reset = async () => {
+export const reset = async (env: Environment | undefined = envRaw) => {
+  const db = createDb(env);
   // oxlint-disable-next-line no-console
   console.log("⏳ Resetting database...");
   const start = Date.now();

@@ -4,17 +4,17 @@ import { apiKey, bearer, openAPI } from "better-auth/plugins";
 
 import type { Environment } from "@/env";
 
+import envRaw from "@/env";
 import { sendEmail } from "@/modules/mail/mail.service";
 import createDb from "@/shared/db";
 import ownerRepository from "@/shared/db/repository/owner.repository";
 import * as schema from "@/shared/db/schemas";
 
-const createAuth = (env: Environment) => {
+const createAuth = (env: Environment | undefined = envRaw) => {
   const db = createDb(env);
   return betterAuth({
     baseURL: env.BETTER_AUTH_URL,
     database: drizzleAdapter(db, {
-      camelCase: true,
       provider: "pg",
       schema,
       usePlural: true,

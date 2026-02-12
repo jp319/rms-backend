@@ -5,7 +5,6 @@ import {
   pgTable,
   text,
   timestamp,
-  varchar,
 } from "drizzle-orm/pg-core";
 
 const DEFAULT_RATE_LIMIT_MAX = 10;
@@ -13,32 +12,32 @@ const DEFAULT_RATE_LIMIT_TIME_WINDOW = 86_400_000;
 const DEFAULT_REQUEST_COUNT = 0;
 
 export const users = pgTable("users", {
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  email: text("email").notNull().unique(),
-  emailVerified: boolean("emailVerified").default(false).notNull(),
   id: text("id").primaryKey(),
-  image: text("image"),
   name: text("name").notNull(),
-  role: varchar({ enum: ["owner", "tenant"] }).notNull(),
-  updatedAt: timestamp("updatedAt")
+  email: text("email").notNull().unique(),
+  emailVerified: boolean("email_verified").default(false).notNull(),
+  image: text("image"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at")
     .defaultNow()
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
+  role: text("role", { enum: ["owner", "tenant"] }).notNull(),
 });
 
 export const sessions = pgTable(
   "sessions",
   {
-    createdAt: timestamp("createdAt").defaultNow().notNull(),
-    expiresAt: timestamp("expiresAt").notNull(),
     id: text("id").primaryKey(),
-    ipAddress: text("ipAddress"),
+    expiresAt: timestamp("expires_at").notNull(),
     token: text("token").notNull().unique(),
-    updatedAt: timestamp("updatedAt")
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
-    userAgent: text("userAgent"),
-    userId: text("userId")
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
   },
@@ -48,23 +47,23 @@ export const sessions = pgTable(
 export const accounts = pgTable(
   "accounts",
   {
-    accessToken: text("accessToken"),
-    accessTokenExpiresAt: timestamp("accessTokenExpiresAt"),
-    accountId: text("accountId").notNull(),
-    createdAt: timestamp("createdAt").defaultNow().notNull(),
     id: text("id").primaryKey(),
-    idToken: text("idToken"),
-    password: text("password"),
-    providerId: text("providerId").notNull(),
-    refreshToken: text("refreshToken"),
-    refreshTokenExpiresAt: timestamp("refreshTokenExpiresAt"),
-    scope: text("scope"),
-    updatedAt: timestamp("updatedAt")
-      .$onUpdate(() => /* @__PURE__ */ new Date())
-      .notNull(),
-    userId: text("userId")
+    accountId: text("account_id").notNull(),
+    providerId: text("provider_id").notNull(),
+    userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    accessToken: text("access_token"),
+    refreshToken: text("refresh_token"),
+    idToken: text("id_token"),
+    accessTokenExpiresAt: timestamp("access_token_expires_at"),
+    refreshTokenExpiresAt: timestamp("refresh_token_expires_at"),
+    scope: text("scope"),
+    password: text("password"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => /* @__PURE__ */ new Date())
+      .notNull(),
   },
   (table) => [index("accounts_userId_idx").on(table.userId)],
 );
@@ -72,15 +71,15 @@ export const accounts = pgTable(
 export const verifications = pgTable(
   "verifications",
   {
-    createdAt: timestamp("createdAt").defaultNow().notNull(),
-    expiresAt: timestamp("expiresAt").notNull(),
     id: text("id").primaryKey(),
     identifier: text("identifier").notNull(),
-    updatedAt: timestamp("updatedAt")
+    value: text("value").notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
       .defaultNow()
       .$onUpdate(() => /* @__PURE__ */ new Date())
       .notNull(),
-    value: text("value").notNull(),
   },
   (table) => [index("verifications_identifier_idx").on(table.identifier)],
 );
@@ -88,31 +87,31 @@ export const verifications = pgTable(
 export const apikeys = pgTable(
   "apikeys",
   {
-    createdAt: timestamp("createdAt").notNull(),
-    enabled: boolean("enabled").default(true),
-    expiresAt: timestamp("expiresAt"),
     id: text("id").primaryKey(),
-    key: text("key").notNull(),
-    lastRefillAt: timestamp("lastRefillAt"),
-    lastRequest: timestamp("lastRequest"),
-    metadata: text("metadata"),
     name: text("name"),
-    permissions: text("permissions"),
-    prefix: text("prefix"),
-    rateLimitEnabled: boolean("rateLimitEnabled").default(true),
-    rateLimitMax: integer("rateLimitMax").default(DEFAULT_RATE_LIMIT_MAX),
-    rateLimitTimeWindow: integer("rateLimitTimeWindow").default(
-      DEFAULT_RATE_LIMIT_TIME_WINDOW,
-    ),
-    refillAmount: integer("refillAmount"),
-    refillInterval: integer("refillInterval"),
-    remaining: integer("remaining"),
-    requestCount: integer("requestCount").default(DEFAULT_REQUEST_COUNT),
     start: text("start"),
-    updatedAt: timestamp("updatedAt").notNull(),
-    userId: text("userId")
+    prefix: text("prefix"),
+    key: text("key").notNull(),
+    userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    refillInterval: integer("refill_interval"),
+    refillAmount: integer("refill_amount"),
+    lastRefillAt: timestamp("last_refill_at"),
+    enabled: boolean("enabled").default(true),
+    rateLimitEnabled: boolean("rate_limit_enabled").default(true),
+    rateLimitTimeWindow: integer("rate_limit_time_window").default(
+      DEFAULT_RATE_LIMIT_TIME_WINDOW,
+    ),
+    rateLimitMax: integer("rate_limit_max").default(DEFAULT_RATE_LIMIT_MAX),
+    requestCount: integer("request_count").default(DEFAULT_REQUEST_COUNT),
+    remaining: integer("remaining"),
+    lastRequest: timestamp("last_request"),
+    expiresAt: timestamp("expires_at"),
+    createdAt: timestamp("created_at").notNull(),
+    updatedAt: timestamp("updated_at").notNull(),
+    permissions: text("permissions"),
+    metadata: text("metadata"),
   },
   (table) => [
     index("apikeys_key_idx").on(table.key),

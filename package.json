@@ -1,15 +1,17 @@
 {
   "name": "rms-backend",
+  "private": true,
   "type": "module",
+  "module": "src/index.ts",
   "scripts": {
     "dev": "bun run --hot src/index.ts",
     "lint": "oxfmt . && oxlint . --fix",
-    "db:reset": "tsx --env-file=.env ./src/shared/db/scripts/reset-db.ts",
+    "db:reset": "tsx --env-file=.env.test ./src/shared/db/scripts/reset-db.ts",
     "db:push": "tsx --env-file=.env node_modules/.bin/drizzle-kit push --config drizzle.config.ts",
     "db:generate": "tsx --env-file=.env node_modules/.bin/drizzle-kit generate --config drizzle.config.ts",
     "db:migrate": "tsx --env-file=.env node_modules/.bin/drizzle-kit migrate --config drizzle.config.ts",
     "db:studio": "tsx --env-file=.env node_modules/.bin/drizzle-kit studio --config drizzle.config.ts",
-    "test": "NODE_ENV=test vitest"
+    "test": "NODE_ENV=test vitest run --printConsoleTrace=true --silent=false"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.7.6",
@@ -22,13 +24,16 @@
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.3.15",
-    "@types/bun": "latest",
     "@types/nodemailer": "^7.0.9",
+    "@types/pg": "^8.16.0",
     "drizzle-kit": "^1.0.0-beta.15-859cf75",
     "oxfmt": "^0.31.0",
     "oxlint": "^1.46.0",
     "tsx": "^4.21.0",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.0.18"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
   }
 }
