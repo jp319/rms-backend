@@ -1,0 +1,78 @@
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { apiKey, bearer, openAPI } from "better-auth/plugins";
+
+import type { Environment } from "@/env";
+
+import { sendEmail } from "@/modules/mail/mail.service";
+import createDb from "@/shared/db";
+import ownerRepository from "@/shared/db/repository/owner.repository";
+import * as schema from "@/shared/db/schemas";
+
+const createAuth = (env: Environment) => {
+  const db = createDb(env);
+  return betterAuth({
+    baseURL: env.BETTER_AUTH_URL,
+    database: drizzleAdapter(db, {
+      camelCase: true,
+      provider: "pg",
+      schema,
+      usePlural: true,
+    }),
+    databaseHooks: {
+      user: {
+        create: {
+          after: async (user) => {
+            if (user.role === "owner") {
+              await ownerRepository.createOwner(user);
+            }
+          },
+        },
+      },
+    },
+    emailAndPassword: {
+      enabled: true,
+      requireEmailVerification: true,
+    },
+    emailVerification: {
+      autoSignInAfterVerification: true,
+      sendOnSignIn: true,
+      sendOnSignUp: true,
+      sendVerificationEmail: async ({ user, url }) => {
+        void sendEmail({
+          subject: "Verify your email address",
+          text: `Click the link to verify your email: ${url}`,
+          to: user.email,
+        });
+      },
+    },
+    plugins: [
+      bearer(),
+      openAPI(),
+      apiKey({
+        enableSessionForAPIKeys: true,
+      }),
+    ],
+    socialProviders: {
+      github: {
+        clientId: env.GITHUB_CLIENT_ID,
+        clientSecret: env.GITHUB_CLIENT_SECRET,
+      },
+      google: {
+        clientId: env.GOOGLE_CLIENT_ID,
+        clientSecret: env.GOOGLE_CLIENT_SECRET,
+      },
+    },
+    user: {
+      additionalFields: {
+        role: {
+          input: true,
+          required: true,
+          type: ["owner", "tenant"],
+        },
+      },
+    },
+  });
+};
+
+export default createAuth;

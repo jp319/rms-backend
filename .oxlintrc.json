@@ -1,0 +1,95 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["vue", "typescript", "unicorn", "import"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "rules": {
+    "no-console": "warn",
+    "no-debugger": "warn",
+    "no-process-env": "warn",
+
+    "max-params": "off",
+    "max-lines": "off",
+    "max-lines-per-function": "off",
+    "max-statements": "off",
+    "max-depth": "off",
+    "complexity": "off",
+
+    "typescript/no-explicit-any": "warn",
+    "typescript/no-redeclare": "off",
+    "typescript/consistent-type-definitions": ["error", "type"],
+
+    "typescript/consistent-type-imports": [
+      "error",
+      {
+        "prefer": "type-imports",
+        "fixStyle": "separate-type-imports"
+      }
+    ],
+
+    "unicorn/filename-case": [
+      "error",
+      {
+        "case": "kebabCase",
+        "ignore": ["README.md"]
+      }
+    ],
+    "unicorn/prevent-abbreviations": "off",
+    "unicorn/no-null": "off",
+    "unicorn/no-abusive-eslint-disable": "off",
+    "unicorn/consistent-function-scoping": "off",
+
+    "vue/multi-word-component-names": "off",
+    "vue/html-self-closing": "off",
+    "vue/max-attributes-per-line": "off",
+
+    "sort-imports": [
+      "warn",
+      {
+        "ignoreCase": false,
+        "ignoreDeclarationSort": true,
+        "ignoreMemberSort": false
+      }
+    ],
+    "import/order": [
+      "warn",
+      {
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          "parent",
+          "sibling",
+          "index",
+          "object",
+          "type"
+        ],
+        "pathGroups": [
+          {
+            "pattern": "~/**",
+            "group": "internal"
+          }
+        ],
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        },
+        "newlines-between": "always"
+      }
+    ]
+  },
+  "ignorePatterns": [
+    ".pnpm-store/**",
+    "**/migrations/*",
+    "dist",
+    "node_modules",
+    ".nuxt",
+    ".output",
+    "coverage",
+    "bun.lock",
+    "public/**"
+  ]
+}
