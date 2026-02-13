@@ -2,6 +2,7 @@ import type { Context } from "hono";
 
 import { zValidator } from "@hono/zod-validator";
 import { HTTPException } from "hono/http-exception";
+import { StatusCodes } from "http-status-toolkit";
 import { z } from "zod";
 
 import type { AppBindings } from "@/shared/types";
@@ -21,7 +22,10 @@ const paramSchema = z.object({
 
 const checkOwner = (c: Context<AppBindings>) => {
   const owner = c.get("owner");
-  if (!owner) throw new HTTPException(401, { message: "Unauthorized" });
+  if (!owner)
+    throw new HTTPException(StatusCodes.UNAUTHORIZED, {
+      message: "Unauthorized",
+    });
   return owner;
 };
 
@@ -78,7 +82,7 @@ const router = createRouter()
               name: "ZodError",
             },
           },
-          422,
+          StatusCodes.UNPROCESSABLE_ENTITY,
         );
       }
 
@@ -114,5 +118,7 @@ const router = createRouter()
       return c.json({ data });
     },
   );
+
+export type AppType = typeof router;
 
 export default router;

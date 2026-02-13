@@ -3,6 +3,7 @@ import type { ContentfulStatusCode } from "hono/utils/http-status";
 
 import { DrizzleQueryError } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
+import { StatusCodes } from "http-status-toolkit";
 import { DatabaseError } from "pg";
 import { PostgresError } from "pg-error-enum";
 import { ZodError } from "zod";
@@ -27,7 +28,7 @@ const onError: ErrorHandler = (err, c) => {
   const env = c.env?.NODE_ENV || process.env?.NODE_ENV;
   const isProd = env === "production";
 
-  let statusCode = 500;
+  let statusCode = StatusCodes.INTERNAL_SERVER_ERROR as ContentfulStatusCode;
   let message = "Something went wrong. Please try again later."; // Friendly default
   const stack = isProd ? undefined : err.stack;
 
@@ -40,7 +41,7 @@ const onError: ErrorHandler = (err, c) => {
 
   // 2. Validation Errors (Zod)
   if (err instanceof ZodError) {
-    statusCode = 422;
+    statusCode = StatusCodes.UNPROCESSABLE_ENTITY;
     message = "The provided data is invalid. Please check your inputs.";
     // Note: You could append `err.issues` to the response here if you wanted
     return makeResponse(c, message, stack, statusCode as ContentfulStatusCode);
@@ -55,7 +56,7 @@ const onError: ErrorHandler = (err, c) => {
           c,
           "A record with this information already exists.",
           stack,
-          409, // Conflict
+          StatusCodes.CONFLICT,
         );
       }
 
@@ -65,13 +66,18 @@ const onError: ErrorHandler = (err, c) => {
           c,
           "This action cannot be completed because this item is currently being used by other records.",
           stack,
-          409, // Conflict is better than 400 for dependency issues
+          StatusCodes.CONFLICT,
         );
       }
 
       // Not Null (e.g., Missing required field in raw SQL)
       if (err.cause.code === PostgresError.NOT_NULL_VIOLATION) {
-        return makeResponse(c, "A required field is missing.", stack, 400);
+        return makeResponse(
+          c,
+          "A required field is missing.",
+          stack,
+          StatusCodes.BAD_REQUEST,
+        );
       }
 
       // Check Constraint (e.g., Price < 0)
@@ -80,14 +86,14 @@ const onError: ErrorHandler = (err, c) => {
           c,
           "The provided data contains invalid values.",
           stack,
-          400,
+          StatusCodes.BAD_REQUEST,
         );
       }
     }
   }
 
   // 4. Fallback (Unknown Error)
-  statusCode = 500;
+  statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
   message = isProd ? "Internal Server Error" : err.message;
 
   return makeResponse(c, message, stack, statusCode as ContentfulStatusCode);

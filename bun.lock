@@ -9,6 +9,7 @@
         "better-auth": "^1.4.18",
         "drizzle-orm": "^1.0.0-beta.15-859cf75",
         "hono": "^4.11.9",
+        "http-status-toolkit": "^2.0.0",
         "nodemailer": "^8.0.1",
         "pg": "^8.18.0",
         "pg-error-enum": "^2.0.1",
@@ -368,6 +369,8 @@
     "hono": ["hono@4.11.9", "", {}, "sha512-Eaw2YTGM6WOxA6CXbckaEvslr2Ne4NFsKrvc0v97JD5awbmeBLO5w9Ho9L9kmKonrwF9RJlW6BxT1PVv/agBHQ=="],
 
     "http-proxy-agent": ["http-proxy-agent@7.0.2", "", { "dependencies": { "agent-base": "^7.1.0", "debug": "^4.3.4" } }, "sha512-T1gkAiYYDWYx3V5Bmyu7HcfcvL7mUrTWiM6yOfa3PIphViJ/gFPbvidQ+veqSOHci/PxBcDabeUNCzpOODJZig=="],
+
+    "http-status-toolkit": ["http-status-toolkit@2.0.0", "", {}, "sha512-2uA7ZIcNoYyHcE04RpBLn6zZlRlcm7gAiCnPeMuxWwdsSut/sLsv/T4t0qjSB0U3dxdVyfzijtZyZPmiqx+V1g=="],
 
     "https-proxy-agent": ["https-proxy-agent@7.0.6", "", { "dependencies": { "agent-base": "^7.1.2", "debug": "4" } }, "sha512-vK9P5/iUfdl95AI+JVyUuIcVtd4ofvtrOr3HNtM2yxC9bnMbEdp3x01OhQNnjb8IJYi38VlTE3mBXwcfvywuSw=="],
 

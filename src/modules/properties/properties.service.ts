@@ -1,4 +1,5 @@
 import { HTTPException } from "hono/http-exception";
+import { StatusCodes } from "http-status-toolkit";
 
 import type { CreateUnitInput } from "@/modules/units/units.schema";
 
@@ -18,7 +19,9 @@ export const propertiesService = {
     const created = await propertiesRepository.create(ownerId, data);
 
     if (!created) {
-      throw new HTTPException(500, { message: "Failed to create property" });
+      throw new HTTPException(StatusCodes.INTERNAL_SERVER_ERROR, {
+        message: "Failed to create property",
+      });
     }
 
     return created;
@@ -28,7 +31,9 @@ export const propertiesService = {
     const property = await propertiesRepository.checkOwner(propertyId, ownerId);
 
     if (!property) {
-      throw new HTTPException(404, { message: "Property not found" });
+      throw new HTTPException(StatusCodes.NOT_FOUND, {
+        message: "Property not found",
+      });
     }
 
     return property;
@@ -46,7 +51,7 @@ export const propertiesService = {
     );
 
     if (!updated) {
-      throw new HTTPException(404, {
+      throw new HTTPException(StatusCodes.NOT_FOUND, {
         message: "Property not found or unauthorized",
       });
     }
@@ -58,7 +63,9 @@ export const propertiesService = {
     const property = await propertiesRepository.checkOwner(propertyId, ownerId);
 
     if (!property) {
-      throw new HTTPException(404, { message: "Property not found" });
+      throw new HTTPException(StatusCodes.NOT_FOUND, {
+        message: "Property not found",
+      });
     }
 
     return await unitsRepository.findByPropertyId(propertyId);
@@ -72,13 +79,17 @@ export const propertiesService = {
     const property = await propertiesRepository.checkOwner(propertyId, ownerId);
 
     if (!property) {
-      throw new HTTPException(404, { message: "Property not found" });
+      throw new HTTPException(StatusCodes.NOT_FOUND, {
+        message: "Property not found",
+      });
     }
 
     const created = await unitsRepository.create(propertyId, data);
 
     if (!created) {
-      throw new HTTPException(500, { message: "Failed to create unit" });
+      throw new HTTPException(StatusCodes.INTERNAL_SERVER_ERROR, {
+        message: "Failed to create unit",
+      });
     }
 
     return created;

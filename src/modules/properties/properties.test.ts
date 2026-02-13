@@ -1,8 +1,9 @@
 import { testClient } from "hono/testing";
+import { StatusCodes } from "http-status-toolkit";
 import { createAndLoginOwner, createAndLoginUser } from "tests/helpers";
 import { describe, expect, it, vi } from "vitest";
 
-import type { AppType } from "@/app";
+import type { AppType } from "@/modules/properties/properties.routes";
 
 import env from "@/env";
 import propertyRoutes from "@/modules/properties/properties.routes";
@@ -41,7 +42,7 @@ describe("Properties Integration", () => {
       { headers: { Cookie: cookie } },
     );
 
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(StatusCodes.OK);
     const body = await res.json();
     expect(body.data).toMatchObject({
       name: "Sunset Villas",
@@ -76,7 +77,7 @@ describe("Properties Integration", () => {
       { headers: { Cookie: cookie } },
     );
 
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(StatusCodes.OK);
     const body = await res.json();
 
     expect(body.data).toHaveLength(3);
@@ -115,11 +116,14 @@ describe("Properties Integration", () => {
       { headers: { Cookie: cookie } },
     );
 
-    expect(updateRes.status).toBe(200);
-    const { data: updatedProp } = await updateRes.json();
+    expect(updateRes.status).toBe(StatusCodes.OK);
 
-    expect(updatedProp.name).toBe("Updated Name");
-    expect(updatedProp.propertyType).toBe("multi-unit");
+    if (updateRes.status === StatusCodes.OK) {
+      const { data: updatedProp } = await updateRes.json();
+
+      expect(updatedProp.name).toBe("Updated Name");
+      expect(updatedProp.propertyType).toBe("multi-unit");
+    }
   });
 
   it("should return 404 for missing property", async () => {
@@ -181,7 +185,7 @@ describe("Properties Integration", () => {
       { headers: { Cookie: cookie } },
     );
 
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(StatusCodes.OK);
     const { data } = await res.json();
 
     expect(data).toHaveLength(3);
@@ -215,7 +219,7 @@ describe("Properties Integration", () => {
       { headers: { Cookie: cookie } },
     );
 
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(StatusCodes.OK);
     const body = await res.json();
     expect(body.data).toMatchObject({
       unitNumber: 101,
