@@ -24,7 +24,7 @@ const createAuth = (env: Environment | undefined = envRaw) => {
         create: {
           after: async (user) => {
             if (user.role === "owner") {
-              await ownersRepository.createOwner(user);
+              await ownersRepository.create(user);
             }
           },
         },

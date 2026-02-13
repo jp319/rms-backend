@@ -1,10 +1,13 @@
 import { HTTPException } from "hono/http-exception";
 
+import type { CreateUnitInput } from "@/modules/units/units.schema";
+
 import { propertiesRepository } from "@/modules/properties/properties.repository";
 import {
   type CreatePropertyInput,
   type UpdatePropertyInput,
 } from "@/modules/properties/properties.schema";
+import { unitsRepository } from "@/modules/units/units.repository";
 
 export const propertiesService = {
   findAllByOwner: async (ownerId: number) => {
@@ -21,8 +24,8 @@ export const propertiesService = {
     return created;
   },
 
-  findOne: async (id: number, ownerId: number) => {
-    const property = await propertiesRepository.checkOwner(id, ownerId);
+  findOne: async (propertyId: number, ownerId: number) => {
+    const property = await propertiesRepository.checkOwner(propertyId, ownerId);
 
     if (!property) {
       throw new HTTPException(404, { message: "Property not found" });
@@ -31,8 +34,16 @@ export const propertiesService = {
     return property;
   },
 
-  update: async (id: number, ownerId: number, data: UpdatePropertyInput) => {
-    const updated = await propertiesRepository.update(id, ownerId, data);
+  update: async (
+    propertyId: number,
+    ownerId: number,
+    data: UpdatePropertyInput,
+  ) => {
+    const updated = await propertiesRepository.update(
+      propertyId,
+      ownerId,
+      data,
+    );
 
     if (!updated) {
       throw new HTTPException(404, {
@@ -41,5 +52,35 @@ export const propertiesService = {
     }
 
     return updated;
+  },
+
+  findUnits: async (propertyId: number, ownerId: number) => {
+    const property = await propertiesRepository.checkOwner(propertyId, ownerId);
+
+    if (!property) {
+      throw new HTTPException(404, { message: "Property not found" });
+    }
+
+    return await unitsRepository.findByPropertyId(propertyId);
+  },
+
+  createUnit: async (
+    propertyId: number,
+    ownerId: number,
+    data: CreateUnitInput,
+  ) => {
+    const property = await propertiesRepository.checkOwner(propertyId, ownerId);
+
+    if (!property) {
+      throw new HTTPException(404, { message: "Property not found" });
+    }
+
+    const created = await unitsRepository.create(propertyId, data);
+
+    if (!created) {
+      throw new HTTPException(500, { message: "Failed to create unit" });
+    }
+
+    return created;
   },
 };

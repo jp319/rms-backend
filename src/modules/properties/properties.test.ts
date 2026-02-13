@@ -8,7 +8,7 @@ import env from "@/env";
 import propertyRoutes from "@/modules/properties/properties.routes";
 import { createTestApp } from "@/shared/create-app";
 import createDb from "@/shared/db";
-import { properties } from "@/shared/db/schemas";
+import { properties, units } from "@/shared/db/schemas";
 
 vi.mock("@/modules/mail/mail.service", () => ({ sendEmail: vi.fn() }));
 
@@ -24,6 +24,12 @@ describe("Properties Integration", () => {
     state: "Davao del Sur",
     zipCode: "8000",
     propertyType: "single-unit" as const,
+    ...overrides,
+  });
+
+  const generateUnit = (overrides = {}) => ({
+    unitNumber: 1,
+    monthlyRent: 1000,
     ...overrides,
   });
 
@@ -142,5 +148,77 @@ describe("Properties Integration", () => {
     );
 
     expect(updateRes.status).toBe(404);
+  });
+
+  it("should list property units for the logged-in owner", async () => {
+    const { cookie, owner } = await createAndLoginOwner("prop-units");
+
+    const db = createDb(env);
+
+    const [property] = await db
+      .insert(properties)
+      .values({
+        ...generateProperty({ name: "Sunset Villas" }),
+        ownerId: owner.id,
+      })
+      .returning();
+
+    const inserts = [];
+
+    for (let i = 0; i < 3; i++) {
+      inserts.push({
+        ...generateUnit({ unitNumber: i }),
+        propertyId: property.id,
+      });
+    }
+
+    await db.insert(units).values(inserts);
+
+    const res = await client.api.owners.properties[":id"].units.$get(
+      {
+        param: { id: property.id.toString() },
+      },
+      { headers: { Cookie: cookie } },
+    );
+
+    expect(res.status).toBe(200);
+    const { data } = await res.json();
+
+    expect(data).toHaveLength(3);
+    expect(data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ unitNumber: 0 }),
+        expect.objectContaining({ unitNumber: 1 }),
+        expect.objectContaining({ unitNumber: 2 }),
+      ]),
+    );
+  });
+
+  it("should create a property unit when authenticated", async () => {
+    const { cookie, owner } = await createAndLoginOwner("prop-create");
+
+    const db = createDb(env);
+
+    const [property] = await db
+      .insert(properties)
+      .values({
+        ...generateProperty({ name: "Sunset Villas" }),
+        ownerId: owner.id,
+      })
+      .returning();
+
+    const res = await client.api.owners.properties[":id"].units.$post(
+      {
+        param: { id: property.id.toString() },
+        json: generateUnit({ unitNumber: 101, monthlyRent: 1500 }),
+      },
+      { headers: { Cookie: cookie } },
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.data).toMatchObject({
+      unitNumber: 101,
+    });
   });
 });

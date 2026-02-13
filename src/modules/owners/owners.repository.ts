@@ -7,14 +7,14 @@ import { owners } from "@/shared/db/schemas";
 const db = createDb(env);
 
 const ownersRepository = {
-  async createOwner(user: User): Promise<NewOwner | undefined> {
+  create: async (user: User): Promise<NewOwner | undefined> => {
     const [created] = await db
       .insert(owners)
       .values({ userId: user.id })
       .returning();
     return created;
   },
-  async findByUserId(userId: string): Promise<Owner | undefined> {
+  findByUserId: async (userId: string): Promise<Owner | undefined> => {
     return await db.query.owners.findFirst({
       where: {
         userId,
