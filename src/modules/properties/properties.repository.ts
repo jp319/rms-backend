@@ -13,7 +13,7 @@ import { properties } from "@/shared/db/schemas";
 
 const db = createDb(env);
 
-export const propertyRepository = {
+export const propertiesRepository = {
   create: async (
     ownerId: number,
     input: CreatePropertyInput,

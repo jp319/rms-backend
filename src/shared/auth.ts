@@ -6,8 +6,8 @@ import type { Environment } from "@/env";
 
 import envRaw from "@/env";
 import { sendEmail } from "@/modules/mail/mail.service";
+import ownersRepository from "@/modules/owners/owners.repository";
 import createDb from "@/shared/db";
-import ownerRepository from "@/shared/db/repository/owner.repository";
 import * as schema from "@/shared/db/schemas";
 
 const createAuth = (env: Environment | undefined = envRaw) => {
@@ -24,7 +24,7 @@ const createAuth = (env: Environment | undefined = envRaw) => {
         create: {
           after: async (user) => {
             if (user.role === "owner") {
-              await ownerRepository.createOwner(user);
+              await ownersRepository.createOwner(user);
             }
           },
         },

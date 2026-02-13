@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { AppType } from "@/app";
 
 import env from "@/env";
-import propertyRoutes from "@/modules/properties/property.routes";
+import propertyRoutes from "@/modules/properties/properties.routes";
 import { createTestApp } from "@/shared/create-app";
 import createDb from "@/shared/db";
 import { properties } from "@/shared/db/schemas";

@@ -1,6 +1,6 @@
 import authRoutes from "@/modules/auth/auth.routes";
 import indexRoutes from "@/modules/index.routes";
-import propertyRoutes from "@/modules/properties/property.routes";
+import propertyRoutes from "@/modules/properties/properties.routes";
 import { createApp } from "@/shared/create-app";
 
 const app = createApp();

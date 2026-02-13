@@ -6,7 +6,7 @@ import { owners } from "@/shared/db/schemas";
 
 const db = createDb(env);
 
-const ownerRepository = {
+const ownersRepository = {
   async createOwner(user: User): Promise<NewOwner | undefined> {
     const [created] = await db
       .insert(owners)
@@ -26,4 +26,4 @@ const ownerRepository = {
 export type NewOwner = typeof owners.$inferInsert;
 export type Owner = typeof owners.$inferSelect;
 
-export default ownerRepository;
+export default ownersRepository;
