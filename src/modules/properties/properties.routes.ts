@@ -12,6 +12,7 @@ import {
 } from "@/modules/properties/properties.schema";
 import { propertiesService } from "@/modules/properties/properties.service";
 import { createUnitSchema } from "@/modules/units/units.schema";
+import { ZOD_ERROR_CODES, ZOD_ERROR_MESSAGES } from "@/shared/constants";
 import { createRouter } from "@/shared/create-app";
 
 const paramSchema = z.object({
@@ -61,6 +62,26 @@ const router = createRouter()
       const owner = checkOwner(c);
       const { id } = c.req.valid("param");
       const updates = c.req.valid("json");
+
+      if (Object.keys(updates).length === 0) {
+        return c.json(
+          {
+            success: false,
+            error: {
+              issues: [
+                {
+                  code: ZOD_ERROR_CODES.INVALID_UPDATES,
+                  path: [],
+                  message: ZOD_ERROR_MESSAGES.NO_UPDATES,
+                },
+              ],
+              name: "ZodError",
+            },
+          },
+          422,
+        );
+      }
+
       const data = await propertiesService.update(id, owner.id, updates);
       return c.json({ data });
     },
