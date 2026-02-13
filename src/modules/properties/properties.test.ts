@@ -91,14 +91,7 @@ describe("Properties Integration", () => {
     const [created] = await db
       .insert(properties)
       .values({
-        ...generateProperty({
-          name: "Original Name",
-          address: "123 Test St",
-          city: "Cebu City",
-          country: "Philippines",
-          state: "Davao del Sur",
-          zipCode: "8000",
-        }),
+        ...generateProperty({ name: "Sunset Villas" }),
         ownerId: owner.id,
       })
       .returning();
