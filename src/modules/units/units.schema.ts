@@ -21,7 +21,11 @@ export const createUnitSchema = insertUnitSchema
     unitNumber: z.int().min(DEFAULT_MIN_INTEGER),
   });
 
-export const updateUnitSchema = createUnitSchema.partial();
+export const updateUnitSchema = createUnitSchema
+  .partial()
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "At least one field must be provided for update",
+  });
 
 export const getUnitWithPropertySchema = selectUnitSchema.extend({
   property: properties.$inferSelect,

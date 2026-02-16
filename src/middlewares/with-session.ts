@@ -6,6 +6,11 @@ import ownersRepository from "@/modules/owners/owners.repository";
 import createAuth from "@/shared/auth";
 
 const withSession: MiddlewareHandler<AppBindings> = async (c, next) => {
+  // Skip session check for documentation
+  if (c.req.path.startsWith("/doc") || c.req.path.startsWith("/reference")) {
+    return next();
+  }
+
   const auth = createAuth(c.env);
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
 

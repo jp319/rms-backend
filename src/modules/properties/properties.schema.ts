@@ -48,7 +48,11 @@ export const createPropertySchema = insertPropertySchema
       .max(DEFAULT_MAX_NUMBER_LENGTH),
   });
 
-export const updatePropertySchema = createPropertySchema.partial();
+export const updatePropertySchema = createPropertySchema
+  .partial()
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "At least one field must be provided for update",
+  });
 
 export const getPropertyWithOwnerSchema = selectPropertySchema.extend({
   owner: createSelectSchema(owners).nullable(),

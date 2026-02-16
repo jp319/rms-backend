@@ -7,7 +7,6 @@ import type { AppBindings } from "@/shared/types";
 
 import * as contracts from "@/modules/units/units.contracts";
 import { unitsService } from "@/modules/units/units.service";
-import { ZOD_ERROR_CODES, ZOD_ERROR_MESSAGES } from "@/shared/constants";
 import { createRouter } from "@/shared/create-app";
 
 const checkOwner = (c: Context<AppBindings>) => {
@@ -37,25 +36,6 @@ const router = createRouter()
     const owner = checkOwner(c);
     const { id } = c.req.valid("param");
     const updates = c.req.valid("json");
-
-    if (Object.keys(updates).length === 0) {
-      return c.json(
-        {
-          success: false,
-          error: {
-            issues: [
-              {
-                code: ZOD_ERROR_CODES.INVALID_UPDATES,
-                path: [],
-                message: ZOD_ERROR_MESSAGES.NO_UPDATES,
-              },
-            ],
-            name: "ZodError",
-          },
-        },
-        StatusCodes.UNPROCESSABLE_ENTITY,
-      );
-    }
 
     const data = await unitsService.updateByIdAndOwnerId(id, owner.id, updates);
     return c.json({ data }, StatusCodes.OK);
