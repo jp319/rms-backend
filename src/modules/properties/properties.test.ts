@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { testClient } from "hono/testing";
 import { StatusCodes } from "http-status-toolkit";
 import { createAndLoginOwner, createAndLoginUser } from "tests/helpers";
@@ -224,5 +225,85 @@ describe("Properties Integration", () => {
     expect(body.data).toMatchObject({
       unitNumber: 101,
     });
+  });
+
+  it("should NOT allow an owner to update another owner's property", async () => {
+    // 1. Setup: Create Owner A and Owner B
+    const ownerA = await createAndLoginOwner("owner-a");
+    const ownerB = await createAndLoginOwner("owner-b");
+
+    const db = createDb(env);
+
+    // 2. Owner A creates a property
+    const [propertyA] = await db
+      .insert(properties)
+      .values({
+        ...generateProperty({ name: "Owner A's Villa" }),
+        ownerId: ownerA.owner.id,
+      })
+      .returning();
+
+    // 3. Act: Owner B tries to update Owner A's property
+    const res = await client.api.owners.properties[":id"].$patch(
+      {
+        param: { id: propertyA.id.toString() },
+        json: { name: "HACKED NAME" },
+      },
+      { headers: { Cookie: ownerB.cookie } }, // 👈 Using Owner B's cookie
+    );
+
+    // 4. Assert: Should be 404 (Not Found) or 403 (Forbidden)
+    // 404 is often better for security so attackers can't "fish" for IDs
+    expect(res.status).toBe(StatusCodes.NOT_FOUND);
+
+    // Double Check: Ensure the name didn't actually change in the DB
+    const [unchangedProp] = await db
+      .select()
+      .from(properties)
+      .where(eq(properties.id, propertyA.id));
+    expect(unchangedProp.name).toBe("Owner A's Villa");
+  });
+
+  it("should return 422 Unprocessable Entity when sending an empty update", async () => {
+    const { cookie, owner } = await createAndLoginOwner("prop-empty-update");
+    const db = createDb(env);
+
+    const [created] = await db
+      .insert(properties)
+      .values({ ...generateProperty(), ownerId: owner.id })
+      .returning();
+
+    const res = await client.api.owners.properties[":id"].$patch(
+      {
+        param: { id: created.id.toString() },
+        json: {}, // 👈 Sending empty object
+      },
+      { headers: { Cookie: cookie } },
+    );
+
+    expect(res.status).toBe(StatusCodes.UNPROCESSABLE_ENTITY);
+    if (res.status === StatusCodes.UNPROCESSABLE_ENTITY) {
+      // @ts-ignore - Intentionally sending wrong types to test Zod
+      const { success, error } = await res.json();
+      expect(success).toBe(false);
+      expect(error.issues[0].message).toBeDefined();
+    }
+  });
+
+  it("should return 400 Bad Request for invalid data types", async () => {
+    const { cookie } = await createAndLoginUser("prop-invalid");
+
+    const res = await client.api.owners.properties.$post(
+      {
+        // @ts-ignore - Intentionally sending wrong types to test Zod
+        json: generateProperty({
+          zipCode: 12345, // Schema likely expects String, sending Number
+          propertyType: "space-station", // Invalid Enum value
+        }),
+      },
+      { headers: { Cookie: cookie } },
+    );
+
+    expect(res.status).toBe(StatusCodes.BAD_REQUEST); // or 422 depending on config
   });
 });

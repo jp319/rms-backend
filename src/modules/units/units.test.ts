@@ -263,4 +263,45 @@ describe("Properties Integration", () => {
       });
     }
   });
+
+  it("should get a single unit details by ID", async () => {
+    const { cookie, owner } = await createAndLoginOwner("unit-get-one");
+    const db = createDb(env);
+
+    // Setup: Create Property & Unit
+    const [property] = await db
+      .insert(properties)
+      .values({ ...generateProperty(), ownerId: owner.id })
+      .returning();
+
+    const [unit] = await db
+      .insert(units)
+      .values({ ...generateUnit({ unitNumber: 505 }), propertyId: property.id })
+      .returning();
+
+    // Act
+    const res = await client.api.owners.units[":id"].$get(
+      { param: { id: unit.id.toString() } },
+      { headers: { Cookie: cookie } },
+    );
+
+    // Assert
+    expect(res.status).toBe(StatusCodes.OK);
+    const body = await res.json();
+    expect(body.data).toMatchObject({
+      id: unit.id,
+      unitNumber: 505,
+    });
+  });
+
+  it("should return 404 when getting a non-existent unit", async () => {
+    const { cookie } = await createAndLoginOwner("unit-404");
+
+    const res = await client.api.owners.units[":id"].$get(
+      { param: { id: "99999" } },
+      { headers: { Cookie: cookie } },
+    );
+
+    expect(res.status).toBe(StatusCodes.NOT_FOUND);
+  });
 });

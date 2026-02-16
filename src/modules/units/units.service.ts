@@ -12,7 +12,13 @@ export const unitsService = {
     id: number,
     ownerId: number,
   ): Promise<Unit | undefined> => {
-    return await unitsRepository.findByIdAndOwnerId(id, ownerId);
+    const unit = await unitsRepository.findByIdAndOwnerId(id, ownerId);
+    if (!unit) {
+      throw new HTTPException(StatusCodes.NOT_FOUND, {
+        message: "Unit not found",
+      });
+    }
+    return unit;
   },
   findAllByOwner: async (ownerId: number) => {
     return await unitsRepository.findByOwnerId(ownerId);
