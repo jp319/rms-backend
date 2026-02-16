@@ -1,6 +1,6 @@
 import type { Schema } from "hono";
 
-import { Hono } from "hono";
+import { OpenAPIHono } from "@hono/zod-openapi";
 import { requestId } from "hono/request-id";
 
 import type { AppAPI, AppBindings } from "@/shared/types";
@@ -9,16 +9,21 @@ import env from "@/env";
 import authCors from "@/middlewares/auth-cors";
 import notFound from "@/middlewares/not-found";
 import onError from "@/middlewares/on-error";
+import { pinoLogger } from "@/middlewares/pino-logger";
 import withSession from "@/middlewares/with-session";
+import { defaultHook } from "@/shared/openapi-hook";
 
 export const createRouter = () => {
-  return new Hono<AppBindings>({
+  return new OpenAPIHono<AppBindings>({
     strict: false,
+    defaultHook,
   });
 };
 
 export const createApp = () => {
   const app = createRouter();
+
+  app.use(pinoLogger());
 
   app.use((c, next) => {
     c.env = env;

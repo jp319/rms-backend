@@ -38,13 +38,16 @@ describe("Properties Integration", () => {
     );
 
     expect(res.status).toBe(StatusCodes.CREATED);
-    const body = await res.json();
 
-    expect(body.data).toMatchObject({
-      name: "Sunset Villas",
-      propertyType: "multi-unit",
-      ownerId: owner.id,
-    });
+    if (res.status === StatusCodes.CREATED) {
+      const body = await res.json();
+
+      expect(body.data).toMatchObject({
+        name: "Sunset Villas",
+        propertyType: "multi-unit",
+        ownerId: owner.id,
+      });
+    }
   });
 
   it("should list properties for the logged-in owner", async () => {
@@ -184,16 +187,19 @@ describe("Properties Integration", () => {
     );
 
     expect(res.status).toBe(StatusCodes.OK);
-    const { data } = await res.json();
 
-    expect(data).toHaveLength(3);
-    expect(data).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ unitNumber: 0 }),
-        expect.objectContaining({ unitNumber: 1 }),
-        expect.objectContaining({ unitNumber: 2 }),
-      ]),
-    );
+    if (res.status === StatusCodes.OK) {
+      const { data } = await res.json();
+
+      expect(data).toHaveLength(3);
+      expect(data).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ unitNumber: 0 }),
+          expect.objectContaining({ unitNumber: 1 }),
+          expect.objectContaining({ unitNumber: 2 }),
+        ]),
+      );
+    }
   });
 
   it("should create a property unit when authenticated", async () => {
@@ -218,10 +224,13 @@ describe("Properties Integration", () => {
     );
 
     expect(res.status).toBe(StatusCodes.CREATED);
-    const body = await res.json();
-    expect(body.data).toMatchObject({
-      unitNumber: 101,
-    });
+
+    if (res.status === StatusCodes.CREATED) {
+      const body = await res.json();
+      expect(body.data).toMatchObject({
+        unitNumber: 101,
+      });
+    }
   });
 
   it("should NOT allow an owner to update another owner's property", async () => {
@@ -280,14 +289,13 @@ describe("Properties Integration", () => {
 
     expect(res.status).toBe(StatusCodes.UNPROCESSABLE_ENTITY);
     if (res.status === StatusCodes.UNPROCESSABLE_ENTITY) {
-      // @ts-ignore - Intentionally sending wrong types to test Zod
       const { success, error } = await res.json();
       expect(success).toBe(false);
       expect(error.issues[0].message).toBeDefined();
     }
   });
 
-  it("should return 400 Bad Request for invalid data types", async () => {
+  it("should return 422 Unprocessable Entity for invalid data types", async () => {
     const { cookie } = await createAndLoginUser("prop-invalid");
 
     const res = await client.api.owners.properties.$post(
@@ -301,6 +309,12 @@ describe("Properties Integration", () => {
       { headers: { Cookie: cookie } },
     );
 
-    expect(res.status).toBe(StatusCodes.BAD_REQUEST); // or 422 depending on config
+    expect(res.status).toBe(StatusCodes.UNPROCESSABLE_ENTITY);
+
+    if (res.status === StatusCodes.UNPROCESSABLE_ENTITY) {
+      const { success, error } = await res.json();
+      expect(success).toBe(false);
+      expect(error.issues[0].message).toBeDefined();
+    }
   });
 });

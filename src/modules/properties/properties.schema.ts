@@ -1,5 +1,5 @@
+import { z } from "@hono/zod-openapi";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
 
 import { owners, properties, propertyImages, units } from "@/shared/db/schemas";
 
@@ -51,25 +51,17 @@ export const createPropertySchema = insertPropertySchema
 export const updatePropertySchema = createPropertySchema.partial();
 
 export const getPropertyWithOwnerSchema = selectPropertySchema.extend({
-  owner: owners.$inferSelect,
+  owner: createSelectSchema(owners).nullable(),
 });
 
 export const getPropertyWithImagesAndOwnerSchema =
   getPropertyWithOwnerSchema.extend({
-    images: z.array(
-      z.object({
-        ...propertyImages.$inferSelect,
-      }),
-    ),
+    images: z.array(createSelectSchema(propertyImages)).nullable(),
   });
 
 export const getPropertyWithFullRelationshipSchema =
   getPropertyWithImagesAndOwnerSchema.extend({
-    units: z.array(
-      z.object({
-        ...units.$inferSelect,
-      }),
-    ),
+    units: z.array(createSelectSchema(units)),
   });
 
 export type Property = typeof properties.$inferSelect;

@@ -1,24 +1,14 @@
 import type { Context } from "hono";
 
-import { zValidator } from "@hono/zod-validator";
 import { HTTPException } from "hono/http-exception";
 import { StatusCodes } from "http-status-toolkit";
-import { z } from "zod";
 
 import type { AppBindings } from "@/shared/types";
 
-import {
-  createPropertySchema,
-  updatePropertySchema,
-} from "@/modules/properties/properties.schema";
+import * as contracts from "@/modules/properties/properties.contracts";
 import { propertiesService } from "@/modules/properties/properties.service";
-import { createUnitSchema } from "@/modules/units/units.schema";
 import { ZOD_ERROR_CODES, ZOD_ERROR_MESSAGES } from "@/shared/constants";
 import { createRouter } from "@/shared/create-app";
-
-const paramSchema = z.object({
-  id: z.coerce.number().int().positive(),
-});
 
 const checkOwner = (c: Context<AppBindings>) => {
   const owner = c.get("owner");
@@ -30,94 +20,72 @@ const checkOwner = (c: Context<AppBindings>) => {
 };
 
 const router = createRouter()
-  .get("/api/owners/properties", async (c) => {
+  .openapi(contracts.list, async (c) => {
     const owner = checkOwner(c);
     const data = await propertiesService.findAllByOwner(owner.id);
-    return c.json({ data });
+    return c.json({ data }, StatusCodes.OK);
   })
 
-  .post(
-    "/api/owners/properties",
-    zValidator("json", createPropertySchema),
-    async (c) => {
-      const owner = checkOwner(c);
-      const validated = c.req.valid("json");
-      const data = await propertiesService.create(owner.id, validated);
-      return c.json({ data }, StatusCodes.CREATED);
-    },
-  )
+  .openapi(contracts.create, async (c) => {
+    const owner = checkOwner(c);
+    const validated = c.req.valid("json");
+    const data = await propertiesService.create(owner.id, validated);
+    return c.json({ data }, StatusCodes.CREATED);
+  })
 
-  .get(
-    "/api/owners/properties/:id",
-    zValidator("param", paramSchema),
-    async (c) => {
-      const owner = checkOwner(c);
-      const { id } = c.req.valid("param");
-      const data = await propertiesService.findOne(id, owner.id);
-      return c.json({ data });
-    },
-  )
+  .openapi(contracts.getOne, async (c) => {
+    const owner = checkOwner(c);
+    const { id } = c.req.valid("param");
+    const data = await propertiesService.findOne(id, owner.id);
+    return c.json({ data }, StatusCodes.OK);
+  })
 
-  .patch(
-    "/api/owners/properties/:id",
-    zValidator("param", paramSchema),
-    zValidator("json", updatePropertySchema),
-    async (c) => {
-      const owner = checkOwner(c);
-      const { id } = c.req.valid("param");
-      const updates = c.req.valid("json");
+  .openapi(contracts.update, async (c) => {
+    const owner = checkOwner(c);
+    const { id } = c.req.valid("param");
+    const updates = c.req.valid("json");
 
-      if (Object.keys(updates).length === 0) {
-        return c.json(
-          {
-            success: false,
-            error: {
-              issues: [
-                {
-                  code: ZOD_ERROR_CODES.INVALID_UPDATES,
-                  path: [],
-                  message: ZOD_ERROR_MESSAGES.NO_UPDATES,
-                },
-              ],
-              name: "ZodError",
-            },
+    if (Object.keys(updates).length === 0) {
+      return c.json(
+        {
+          success: false,
+          error: {
+            issues: [
+              {
+                code: ZOD_ERROR_CODES.INVALID_UPDATES,
+                path: [],
+                message: ZOD_ERROR_MESSAGES.NO_UPDATES,
+              },
+            ],
+            name: "ZodError",
           },
-          StatusCodes.UNPROCESSABLE_ENTITY,
-        );
-      }
-
-      const data = await propertiesService.update(id, owner.id, updates);
-      return c.json({ data });
-    },
-  )
-
-  .get(
-    "/api/owners/properties/:id/units",
-    zValidator("param", paramSchema),
-    async (c) => {
-      const owner = checkOwner(c);
-      const { id } = c.req.valid("param");
-      const data = await propertiesService.findUnits(id, owner.id);
-      return c.json({ data });
-    },
-  )
-
-  .post(
-    "/api/owners/properties/:id/units",
-    zValidator("param", paramSchema),
-    zValidator("json", createUnitSchema),
-    async (c) => {
-      const owner = checkOwner(c);
-      const { id: propertyId } = c.req.valid("param");
-      const validated = c.req.valid("json");
-      const data = await propertiesService.createUnit(
-        propertyId,
-        owner.id,
-        validated,
+        },
+        StatusCodes.UNPROCESSABLE_ENTITY,
       );
-      return c.json({ data }, StatusCodes.CREATED);
-    },
-  );
+    }
+
+    const data = await propertiesService.update(id, owner.id, updates);
+    return c.json({ data }, StatusCodes.OK);
+  })
+
+  .openapi(contracts.listUnits, async (c) => {
+    const owner = checkOwner(c);
+    const { id } = c.req.valid("param");
+    const data = await propertiesService.findUnits(id, owner.id);
+    return c.json({ data }, StatusCodes.OK);
+  })
+
+  .openapi(contracts.createUnit, async (c) => {
+    const owner = checkOwner(c);
+    const { id: propertyId } = c.req.valid("param");
+    const validated = c.req.valid("json");
+    const data = await propertiesService.createUnit(
+      propertyId,
+      owner.id,
+      validated,
+    );
+    return c.json({ data }, StatusCodes.CREATED);
+  });
 
 export type AppType = typeof router;
 

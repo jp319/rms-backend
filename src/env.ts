@@ -1,6 +1,6 @@
 import type { ZodObject, ZodRawShape } from "zod";
 
-import { z } from "zod";
+import { z } from "@hono/zod-openapi";
 import { ZodError } from "zod";
 
 const DEFAULT_MIN_STRING_LENGTH = 1;
@@ -9,6 +9,15 @@ const DEFAULT_SECRET_LENGTH = 32;
 const raw = process.env;
 
 const schema = z.object({
+  LOG_LEVEL: z.enum([
+    "fatal",
+    "error",
+    "warn",
+    "info",
+    "debug",
+    "trace",
+    "silent",
+  ]),
   PORT: z.coerce.number(),
   BETTER_AUTH_SECRET: z.string().min(DEFAULT_SECRET_LENGTH),
   BETTER_AUTH_URL: z.url(),

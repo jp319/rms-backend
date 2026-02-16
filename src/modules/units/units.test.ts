@@ -261,11 +261,14 @@ describe("Properties Integration", () => {
 
     // Assert
     expect(res.status).toBe(StatusCodes.OK);
-    const body = await res.json();
-    expect(body.data).toMatchObject({
-      id: unit.id,
-      unitNumber: 505,
-    });
+
+    if (res.status === StatusCodes.OK) {
+      const body = await res.json();
+      expect(body.data).toMatchObject({
+        id: unit.id,
+        unitNumber: 505,
+      });
+    }
   });
 
   it("should return 404 when getting a non-existent unit", async () => {

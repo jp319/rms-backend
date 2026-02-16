@@ -1,5 +1,5 @@
+import { z } from "@hono/zod-openapi";
 import { createInsertSchema, createSelectSchema } from "drizzle-zod";
-import { z } from "zod";
 
 import { properties, units } from "@/shared/db/schemas";
 

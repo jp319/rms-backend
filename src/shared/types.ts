@@ -1,3 +1,4 @@
+import type { z } from "@hono/zod-openapi";
 import type { Session, User } from "better-auth";
 import type { Hono, Schema } from "hono";
 
@@ -14,3 +15,5 @@ export type AppBindings = {
 };
 
 export type AppAPI<S extends Schema = {}> = Hono<AppBindings, S>;
+export type ZodSchema = z.ZodType<unknown, unknown, z.core.$ZodTypeInternals>;
+export type ZodIssue = z.core.$ZodIssue;
