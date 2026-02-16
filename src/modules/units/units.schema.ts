@@ -1,4 +1,4 @@
-import { createInsertSchema, createSelectSchema } from "drizzle-orm/zod";
+import { createInsertSchema, createSelectSchema } from "drizzle-zod";
 import { z } from "zod";
 
 import { properties, units } from "@/shared/db/schemas";
