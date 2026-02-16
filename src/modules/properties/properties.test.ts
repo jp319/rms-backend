@@ -23,17 +23,27 @@ describe("Properties Integration", () => {
   const client = testClient<AppType>(createTestApp(propertyRoutes));
 
   it("should create a property when authenticated", async () => {
-    const { cookie } = await createAndLoginUser("prop-create");
+    const { cookie, owner } = await createAndLoginOwner("prop-list");
 
     const res = await client.api.owners.properties.$post(
-      { json: generateProperty({ name: "Sunset Villas" }) },
+      {
+        json: {
+          ...generateProperty({
+            name: "Sunset Villas",
+            propertyType: "multi-unit",
+          }),
+        },
+      },
       { headers: { Cookie: cookie } },
     );
 
-    expect(res.status).toBe(StatusCodes.OK);
+    expect(res.status).toBe(StatusCodes.CREATED);
     const body = await res.json();
+
     expect(body.data).toMatchObject({
       name: "Sunset Villas",
+      propertyType: "multi-unit",
+      ownerId: owner.id,
     });
   });
 
@@ -207,7 +217,7 @@ describe("Properties Integration", () => {
       { headers: { Cookie: cookie } },
     );
 
-    expect(res.status).toBe(StatusCodes.OK);
+    expect(res.status).toBe(StatusCodes.CREATED);
     const body = await res.json();
     expect(body.data).toMatchObject({
       unitNumber: 101,

@@ -207,7 +207,7 @@ describe("Properties Integration", () => {
 
     if (!unit) throw new Error("Unit not created for test user");
 
-    const generated = generateLease({ tenantId: tenant.id });
+    const generated = generateLease();
 
     const res = await client.api.owners.units[":id"].leases.$post(
       {
@@ -216,16 +216,18 @@ describe("Properties Integration", () => {
         },
         json: {
           ...generated,
+          tenantId: tenant.id,
         },
       },
       { headers: { Cookie: cookie } },
     );
 
-    expect(res.status).toBe(StatusCodes.OK);
-    if (res.status === StatusCodes.OK) {
+    expect(res.status).toBe(StatusCodes.CREATED);
+    if (res.status === StatusCodes.CREATED) {
       const { data } = await res.json();
       expect(data).toStrictEqual({
         ...generated,
+        tenantId: tenant.id,
         id: expect.any(Number),
         startDate: expect.any(String),
         endDate: expect.any(String),

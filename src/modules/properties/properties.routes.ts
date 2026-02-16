@@ -43,7 +43,7 @@ const router = createRouter()
       const owner = checkOwner(c);
       const validated = c.req.valid("json");
       const data = await propertiesService.create(owner.id, validated);
-      return c.json({ data });
+      return c.json({ data }, StatusCodes.CREATED);
     },
   )
 
@@ -115,7 +115,7 @@ const router = createRouter()
         owner.id,
         validated,
       );
-      return c.json({ data });
+      return c.json({ data }, StatusCodes.CREATED);
     },
   );
 

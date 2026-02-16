@@ -75,7 +75,7 @@ const router = createRouter()
       const validated = c.req.valid("json");
       const owner = checkOwner(c);
       const data = await unitsService.createLease(id, owner.id, validated);
-      return c.json({ data });
+      return c.json({ data }, StatusCodes.CREATED);
     },
   );
 

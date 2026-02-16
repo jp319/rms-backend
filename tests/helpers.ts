@@ -85,7 +85,7 @@ export const generateProperty = (overrides = {}) => ({
   country: "Philippines",
   state: "Davao del Sur",
   zipCode: "8000",
-  propertyType: "single-unit" as const,
+  propertyType: "single-unit" as "single-unit" | "multi-unit",
   ...overrides,
 });
 
