@@ -1,14 +1,13 @@
 import type { NotFoundHandler } from "hono";
-import type { ContentfulStatusCode } from "hono/utils/http-status";
 
-import { statusCodes } from "better-auth";
+import { StatusCodes } from "http-status-toolkit";
 
 const notFound: NotFoundHandler = (c) => {
   return c.json(
     {
       message: `Not Found - ${c.req.path}`,
     },
-    statusCodes.NOT_FOUND as ContentfulStatusCode,
+    StatusCodes.NOT_FOUND,
   );
 };
 

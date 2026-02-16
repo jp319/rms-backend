@@ -5,7 +5,7 @@
   "module": "src/index.ts",
   "scripts": {
     "dev": "bun run --hot src/index.ts",
-    "lint": "oxfmt . && oxlint . --fix",
+    "lint": "oxfmt . && oxlint . --fix --type-aware --type-check",
     "typecheck": "bunx tsc --noEmit",
     "db:reset": "tsx --env-file=.env ./src/shared/db/scripts/reset-db.ts",
     "db:push": "tsx --env-file=.env node_modules/.bin/drizzle-kit push --config drizzle.config.ts",
@@ -32,6 +32,7 @@
     "drizzle-kit": "^1.0.0-beta.15-859cf75",
     "oxfmt": "^0.31.0",
     "oxlint": "^1.46.0",
+    "oxlint-tsgolint": "^0.13.0",
     "tsx": "^4.21.0",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.0.18"

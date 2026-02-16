@@ -24,7 +24,6 @@ const makeResponse = (
 };
 
 const onError: ErrorHandler = (err, c) => {
-  // eslint-disable-next-line node/prefer-global/process
   const env = c.env?.NODE_ENV || process.env?.NODE_ENV;
   const isProd = env === "production";
 
@@ -36,7 +35,7 @@ const onError: ErrorHandler = (err, c) => {
   if (err instanceof HTTPException) {
     statusCode = err.status;
     message = err.message;
-    return makeResponse(c, message, stack, statusCode as ContentfulStatusCode);
+    return makeResponse(c, message, stack, statusCode);
   }
 
   // 2. Validation Errors (Zod)

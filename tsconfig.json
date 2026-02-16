@@ -8,10 +8,10 @@
     "lib": ["ESNext"],
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx",
-    "baseUrl": "./",
     "outDir": "./dist",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "tests/*": ["./tests/*"]
     },
     "typeRoots": ["./node_modules/@types"],
     "types": ["node"]
