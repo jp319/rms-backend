@@ -41,7 +41,7 @@ export const getOne = createRoute({
   responses: {
     [StatusCodes.OK]: jsonContent(
       z.object({
-        data: selectUnitSchema.optional(),
+        data: selectUnitSchema,
       }),
       "Unit details",
     ),

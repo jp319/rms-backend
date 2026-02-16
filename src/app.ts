@@ -1,7 +1,8 @@
 import authRoutes from "@/modules/auth/auth.routes";
 import indexRoutes from "@/modules/index.routes";
-import propertyRoutes from "@/modules/properties/properties.routes";
-import unitRoutes from "@/modules/units/units.routes";
+import propertiesRoutes from "@/modules/properties/properties.routes";
+import tenantsRoutes from "@/modules/tenants/tenants.routes";
+import unitsRoutes from "@/modules/units/units.routes";
 import { createApp } from "@/shared/create-app";
 
 const app = createApp();
@@ -9,8 +10,9 @@ const app = createApp();
 const routes = app
   .route("/", indexRoutes)
   .route("/", authRoutes)
-  .route("/", propertyRoutes)
-  .route("/", unitRoutes);
+  .route("/", propertiesRoutes)
+  .route("/", unitsRoutes)
+  .route("/", tenantsRoutes);
 
 // Dont load OpenAPI documentation in test environment
 // To prevent "createRequire" errors in Vitest

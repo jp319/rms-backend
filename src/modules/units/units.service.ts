@@ -8,10 +8,7 @@ import { leaseRepository } from "@/modules/leases/leases.repository";
 import { unitsRepository } from "@/modules/units/units.repository";
 
 export const unitsService = {
-  findByIdAndOwnerId: async (
-    id: number,
-    ownerId: number,
-  ): Promise<Unit | undefined> => {
+  findByIdAndOwnerId: async (id: number, ownerId: number): Promise<Unit> => {
     const unit = await unitsRepository.findByIdAndOwnerId(id, ownerId);
     if (!unit) {
       throw new HTTPException(StatusCodes.NOT_FOUND, {

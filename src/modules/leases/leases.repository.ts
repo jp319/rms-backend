@@ -47,4 +47,19 @@ export const leaseRepository = {
       },
     });
   },
+  findByOwnerAndTenantId: async (
+    ownerId: number,
+    tenantId: number,
+  ): Promise<Lease[]> => {
+    return await db.query.leases.findMany({
+      where: {
+        tenantId,
+        unit: {
+          property: {
+            ownerId,
+          },
+        },
+      },
+    });
+  },
 };
