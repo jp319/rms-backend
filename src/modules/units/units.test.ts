@@ -1,6 +1,12 @@
 import { testClient } from "hono/testing";
 import { StatusCodes } from "http-status-toolkit";
-import { createAndLoginOwner } from "tests/helpers";
+import {
+  createAndLoginOwner,
+  generateLease,
+  generateProperty,
+  generateTenant,
+  generateUnit,
+} from "tests/helpers";
 import { describe, expect, it, vi } from "vitest";
 
 import type { AppType } from "@/modules/units/units.routes";
@@ -15,40 +21,6 @@ vi.mock("@/modules/mail/mail.service", () => ({ sendEmail: vi.fn() }));
 
 describe("Properties Integration", () => {
   const client = testClient<AppType>(createTestApp(unitsRoutes));
-
-  // Factory
-  const generateProperty = (overrides = {}) => ({
-    name: "Test Property",
-    address: "123 Test St",
-    city: "Davao City",
-    country: "Philippines",
-    state: "Davao del Sur",
-    zipCode: "8000",
-    propertyType: "single-unit" as const,
-    ...overrides,
-  });
-
-  const generateUnit = (overrides = {}) => ({
-    unitNumber: 1,
-    monthlyRent: 1000,
-    ...overrides,
-  });
-
-  const generateTenant = (overrides = {}) => ({
-    name: "John Doe",
-    email: "john.doe@example.com",
-    phone: "1234567890",
-    ...overrides,
-  });
-
-  const generateLease = (overrides = {}) => ({
-    startDate: new Date(),
-    endDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-    monthlyRent: 1000,
-    securityDeposit: 1000,
-    tenantId: 1,
-    ...overrides,
-  });
 
   it("should list units for the logged-in owner", async () => {
     const { cookie, owner } = await createAndLoginOwner("prop-create");

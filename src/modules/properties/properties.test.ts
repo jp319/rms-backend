@@ -1,7 +1,12 @@
 import { eq } from "drizzle-orm";
 import { testClient } from "hono/testing";
 import { StatusCodes } from "http-status-toolkit";
-import { createAndLoginOwner, createAndLoginUser } from "tests/helpers";
+import {
+  createAndLoginOwner,
+  createAndLoginUser,
+  generateProperty,
+  generateUnit,
+} from "tests/helpers";
 import { describe, expect, it, vi } from "vitest";
 
 import type { AppType } from "@/modules/properties/properties.routes";
@@ -16,24 +21,6 @@ vi.mock("@/modules/mail/mail.service", () => ({ sendEmail: vi.fn() }));
 
 describe("Properties Integration", () => {
   const client = testClient<AppType>(createTestApp(propertyRoutes));
-
-  // Factory
-  const generateProperty = (overrides = {}) => ({
-    name: "Test Property",
-    address: "123 Test St",
-    city: "Davao City",
-    country: "Philippines",
-    state: "Davao del Sur",
-    zipCode: "8000",
-    propertyType: "single-unit" as const,
-    ...overrides,
-  });
-
-  const generateUnit = (overrides = {}) => ({
-    unitNumber: 1,
-    monthlyRent: 1000,
-    ...overrides,
-  });
 
   it("should create a property when authenticated", async () => {
     const { cookie } = await createAndLoginUser("prop-create");
