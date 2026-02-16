@@ -16,7 +16,7 @@ vi.mock("@/modules/mail/mail.service", () => ({ sendEmail: vi.fn() }));
 describe("Properties Integration", () => {
   const client = testClient<AppType>(createTestApp(propertyRoutes));
 
-  // 🏭 FACTORY
+  // Factory
   const generateProperty = (overrides = {}) => ({
     name: "Test Property",
     address: "123 Test St",
