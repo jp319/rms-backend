@@ -205,4 +205,50 @@ describe("Tenants Integration", () => {
       expect(data[0].unitId).toBe(unit.id);
     }
   });
+
+  it("should NOT allow an owner to access another owner's tenant", async () => {
+    // 1. Setup: Two owners
+    const ownerA = await createAndLoginOwner("tenant-owner-a");
+    const ownerB = await createAndLoginOwner("tenant-owner-b");
+    const db = createDb(env);
+
+    // 2. Owner A creates a tenant
+    const [tenantA] = await db
+      .insert(tenants)
+      .values({
+        ...generateTenant({ name: "Tenant A" }),
+        ownerId: ownerA.owner.id,
+      })
+      .returning();
+
+    // 3. Act: Owner B tries to GET Tenant A
+    const res = await client.api.owners.tenants[":id"].$get(
+      { param: { id: tenantA.id.toString() } },
+      { headers: { Cookie: ownerB.cookie } }, // 👈 Owner B's Cookie
+    );
+
+    // 4. Assert: Should be 404 (Not Found)
+    // We prefer 404 over 403 to prevent ID fishing
+    expect(res.status).toBe(StatusCodes.NOT_FOUND);
+  });
+
+  it("should return 422 Unprocessable Entity for empty updates", async () => {
+    const { cookie, owner } = await createAndLoginOwner("tenant-empty");
+    const db = createDb(env);
+
+    const [created] = await db
+      .insert(tenants)
+      .values({ ...generateTenant(), ownerId: owner.id })
+      .returning();
+
+    const res = await client.api.owners.tenants[":id"].$patch(
+      {
+        param: { id: created.id.toString() },
+        json: {}, // 👈 Empty body
+      },
+      { headers: { Cookie: cookie } },
+    );
+
+    expect(res.status).toBe(StatusCodes.UNPROCESSABLE_ENTITY);
+  });
 });

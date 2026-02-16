@@ -26,7 +26,11 @@ export const createTenantSchema = insertTenantSchema
       .max(DEFAULT_MAX_STRING_LENGTH),
   });
 
-export const updateTenantSchema = createTenantSchema.partial();
+export const updateTenantSchema = createTenantSchema
+  .partial()
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "At least one field must be provided for update",
+  });
 
 export type Tenant = typeof tenants.$inferSelect;
 export type NewTenant = z.infer<typeof selectTenantSchema>;
