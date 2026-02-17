@@ -6,7 +6,7 @@ import type {
   UpdateTenantInput,
 } from "@/modules/tenants/tenants.schema";
 
-import { leaseRepository } from "@/modules/leases/leases.repository";
+import { leasesRepository } from "@/modules/leases/leases.repository";
 import { tenantsRepository } from "@/modules/tenants/tenants.repository";
 
 export const tenantsService = {
@@ -63,7 +63,7 @@ export const tenantsService = {
       });
     }
 
-    const leases = await leaseRepository.findByOwnerAndTenantId(ownerId, id);
+    const leases = await leasesRepository.findByOwnerAndTenantId(ownerId, id);
 
     return leases;
   },

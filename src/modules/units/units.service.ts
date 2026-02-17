@@ -4,7 +4,7 @@ import { StatusCodes } from "http-status-toolkit";
 import type { CreateLeaseInput } from "@/modules/leases/leases.schema";
 import type { Unit, UpdateUnitInput } from "@/modules/units/units.schema";
 
-import { leaseRepository } from "@/modules/leases/leases.repository";
+import { leasesRepository } from "@/modules/leases/leases.repository";
 import { unitsRepository } from "@/modules/units/units.repository";
 
 export const unitsService = {
@@ -50,7 +50,7 @@ export const unitsService = {
       });
     }
 
-    const leases = await leaseRepository.findByOwnerId(ownerId);
+    const leases = await leasesRepository.findByOwnerId(ownerId);
 
     if (!leases) {
       throw new HTTPException(StatusCodes.INTERNAL_SERVER_ERROR, {
@@ -81,7 +81,7 @@ export const unitsService = {
       });
     }
 
-    const created = await leaseRepository.create(unitId, input);
+    const created = await leasesRepository.create(unitId, input);
 
     if (!created) {
       throw new HTTPException(StatusCodes.INTERNAL_SERVER_ERROR, {

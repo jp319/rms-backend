@@ -1,5 +1,6 @@
 import authRoutes from "@/modules/auth/auth.routes";
 import indexRoutes from "@/modules/index.routes";
+import leasesRoutes from "@/modules/leases/leases.routes";
 import propertiesRoutes from "@/modules/properties/properties.routes";
 import tenantsRoutes from "@/modules/tenants/tenants.routes";
 import unitsRoutes from "@/modules/units/units.routes";
@@ -12,7 +13,8 @@ const routes = app
   .route("/", authRoutes)
   .route("/", propertiesRoutes)
   .route("/", unitsRoutes)
-  .route("/", tenantsRoutes);
+  .route("/", tenantsRoutes)
+  .route("/", leasesRoutes);
 
 // Dont load OpenAPI documentation in test environment
 // To prevent "createRequire" errors in Vitest

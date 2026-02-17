@@ -1,4 +1,10 @@
-import type { CreateLeaseInput, Lease } from "@/modules/leases/leases.schema";
+import { eq } from "drizzle-orm";
+
+import type {
+  CreateLeaseInput,
+  Lease,
+  UpdateLeaseInput,
+} from "@/modules/leases/leases.schema";
 
 import env from "@/env";
 import createDb from "@/shared/db";
@@ -6,7 +12,7 @@ import { leases } from "@/shared/db/schemas";
 
 const db = createDb(env);
 
-export const leaseRepository = {
+export const leasesRepository = {
   create: async (
     unitId: number,
     input: CreateLeaseInput,
@@ -20,6 +26,18 @@ export const leaseRepository = {
       .returning();
 
     return created;
+  },
+  update: async (
+    id: number,
+    input: UpdateLeaseInput,
+  ): Promise<Lease | undefined> => {
+    const [updated] = await db
+      .update(leases)
+      .set(input)
+      .where(eq(leases.id, id))
+      .returning();
+
+    return updated;
   },
   findByIdAndOwnerId: async (
     id: number,
