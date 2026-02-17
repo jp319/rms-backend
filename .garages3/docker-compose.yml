@@ -1,0 +1,38 @@
+# .garages3/docker-compose.yml
+services:
+  garage:
+    image: dxflrs/garage:v2.0.0
+    container_name: rms-garage-s3
+    ports:
+      - "3900:3900" # RPC port
+      - "3901:3901" # Admin API
+      - "3902:3902" # S3 API
+      - "3903:3903" # Web endpoint (public access)
+    volumes:
+      - ./meta:/var/lib/garage/meta
+      - ./data:/var/lib/garage/data
+      - ./garage.toml:/etc/garage.toml
+    environment:
+      RUST_LOG: garage=info
+      GARAGE_CONFIG_FILE: /etc/garage.toml
+    command: /garage server
+    restart: unless-stopped
+
+  webui:
+    image: khairul169/garage-webui:latest
+    container_name: rms-garage-webui
+    ports:
+      - "3909:3909"
+    environment:
+      - CONFIG_PATH=/etc/garage.toml
+      - API_BASE_URL=http://rms-garage-s3:3901
+      - S3_ENDPOINT_URL=http://rms-garage-s3:3902
+    volumes:
+      - ./garage.toml:/etc/garage.toml
+    depends_on:
+      - garage
+
+networks:
+  default:
+    name: rms-network
+    external: false

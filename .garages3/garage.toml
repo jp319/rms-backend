@@ -1,0 +1,31 @@
+# .garages3/garage.toml
+
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+
+db_engine = "sqlite"
+
+# Single node for local development
+replication_factor = 1
+
+rpc_bind_addr = "[::]:3900"
+rpc_public_addr = "127.0.0.1:3900"
+
+# Your 64-char hex secret
+rpc_secret = "2e4b0d8c1a9f3e5c7d2b4a6f8e0d1c3b5a7f9e2d4c6b8a0e1f3d5c7b9a2e4f6d"
+
+[s3_api]
+s3_region = "garage"
+api_bind_addr = "[::]:3902"
+root_domain = ".s3.garage.localhost"
+
+[s3_web]
+bind_addr = "[::]:3903"
+root_domain = ".localhost"
+index = "index.html"
+
+[admin]
+api_bind_addr = "[::]:3901"
+# v2.0.0 still supports this simple token for local setups
+admin_token = "admin-token-change-me-in-production"
+metrics_token = "metrics-token-change-me-in-production"

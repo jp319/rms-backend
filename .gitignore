@@ -15,3 +15,15 @@ logs
 .env.*
 !.env.example
 !.env.test
+
+
+# garage s3 data
+.garages3/data/*
+!.garages3/data/.gitkeep
+.garages3/meta/*
+!.garages3/meta/.gitkeep
+
+# garage s3 config files
+!.garages3/docker-compose.yml
+!.garages3/garage.toml
+!.garages3/setup.sh
