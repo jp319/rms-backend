@@ -23,7 +23,7 @@ export const paymentsRepository = {
     return payment;
   },
 
-  findByLeaseId: async (leaseId: number): Promise<Payment[] | undefined> => {
+  findByLeaseId: async (leaseId: number): Promise<Payment[]> => {
     return await db
       .select()
       .from(payments)

@@ -14,7 +14,10 @@ export const createPaymentSchema = insertPaymentSchema
     leaseId: true,
   })
   .extend({
-    amount: z.coerce.number().positive("Amount must be a positive"),
+    amount: z.coerce
+      .number()
+      .positive()
+      .int("Amount must be in cents (integers only)"),
     datePaid: z.coerce.date(),
     paymentType: z.enum(["damages", "deposit", "rent"]),
     notes: z.string().max(255).optional(),

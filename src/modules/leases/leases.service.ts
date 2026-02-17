@@ -60,12 +60,6 @@ export const leasesService = {
 
     const payments = await paymentsRepository.findByLeaseId(leaseId);
 
-    if (!payments) {
-      throw new HTTPException(StatusCodes.INTERNAL_SERVER_ERROR, {
-        message: "Failed to find payments",
-      });
-    }
-
     return payments;
   },
   createPayment: async (
