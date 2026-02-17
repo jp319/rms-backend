@@ -38,6 +38,24 @@ const router = createRouter()
     const validated = c.req.valid("json");
     const data = await leasesService.update(id, owner.id, validated);
     return c.json({ data }, StatusCodes.OK);
+  })
+
+  .openapi(contracts.listPayments, async (c) => {
+    const owner = checkOwner(c);
+    const { id } = c.req.valid("param");
+    const data = await leasesService.findPaymentsByOwnerAndLeaseId(
+      owner.id,
+      id,
+    );
+    return c.json({ data }, StatusCodes.OK);
+  })
+
+  .openapi(contracts.createPayment, async (c) => {
+    const owner = checkOwner(c);
+    const { id } = c.req.valid("param");
+    const validated = c.req.valid("json");
+    const data = await leasesService.createPayment(id, owner.id, validated);
+    return c.json({ data }, StatusCodes.CREATED);
   });
 
 export type AppType = typeof router;

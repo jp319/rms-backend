@@ -12,7 +12,7 @@ import { leases } from "./leases.sql";
 
 export const payments = pgTable("payments", {
   amount: integer().notNull(),
-  datePaid: date().notNull(),
+  datePaid: date({ mode: "date" }).notNull(),
   id: serial().primaryKey(),
   leaseId: integer()
     .notNull()

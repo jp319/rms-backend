@@ -251,4 +251,85 @@ describe("Tenants Integration", () => {
       expect(body.data.monthlyRent).toBe(1500);
     }
   });
+
+  it("should add a payment to an owned lease", async () => {
+    const { cookie, owner } = await createAndLoginOwner("payment-success");
+
+    const db = createDb(env);
+
+    // Setup Lease
+    const [prop] = await db
+      .insert(properties)
+      .values({ ...generateProperty(), ownerId: owner.id })
+      .returning();
+    const [unit] = await db
+      .insert(units)
+      .values({ ...generateUnit(), propertyId: prop.id })
+      .returning();
+    const [tenant] = await db
+      .insert(tenants)
+      .values({ ...generateTenant(), ownerId: owner.id })
+      .returning();
+    const [lease] = await db
+      .insert(leases)
+      .values({ ...generateLease(), unitId: unit.id, tenantId: tenant.id })
+      .returning();
+
+    // Act
+    const res = await client.api.owners.leases[":id"].payments.$post(
+      {
+        param: { id: lease.id.toString() },
+        json: {
+          amount: 1000,
+          datePaid: "2026-02-18",
+          paymentType: "rent",
+          notes: "First month",
+        },
+      },
+      { headers: { Cookie: cookie } },
+    );
+
+    expect(res.status).toBe(StatusCodes.CREATED);
+
+    if (res.status === StatusCodes.CREATED) {
+      const body = await res.json();
+      expect(body.data.amount).toBe(1000);
+    }
+  });
+
+  it("should NOT allow adding payment to someone else's lease", async () => {
+    const ownerA = await createAndLoginOwner("pay-owner-a");
+    const ownerB = await createAndLoginOwner("pay-owner-b"); // Attacker
+
+    const db = createDb(env);
+
+    // Owner A's Lease
+    const [prop] = await db
+      .insert(properties)
+      .values({ ...generateProperty(), ownerId: ownerA.owner.id })
+      .returning();
+    const [unit] = await db
+      .insert(units)
+      .values({ ...generateUnit(), propertyId: prop.id })
+      .returning();
+    const [tenant] = await db
+      .insert(tenants)
+      .values({ ...generateTenant(), ownerId: ownerA.owner.id })
+      .returning();
+    const [lease] = await db
+      .insert(leases)
+      .values({ ...generateLease(), unitId: unit.id, tenantId: tenant.id })
+      .returning();
+
+    // Act: Owner B tries to add payment
+    const res = await client.api.owners.leases[":id"].payments.$post(
+      {
+        param: { id: lease.id.toString() },
+        json: { amount: 500, datePaid: "2026-02-18", paymentType: "rent" },
+      },
+      { headers: { Cookie: ownerB.cookie } },
+    );
+
+    expect(res.status).toBe(StatusCodes.NOT_FOUND);
+  });
 });
