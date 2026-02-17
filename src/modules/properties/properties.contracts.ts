@@ -8,6 +8,11 @@ import {
   updatePropertySchema,
 } from "@/modules/properties/properties.schema";
 import {
+  createPropertyImageSchema,
+  getUploadUrlSchema,
+  selectPropertyImageSchema,
+} from "@/modules/property-images/property-images.schema";
+import {
   createUnitSchema,
   selectUnitSchema,
 } from "@/modules/units/units.schema";
@@ -142,6 +147,72 @@ export const createUnit = createRoute({
     [StatusCodes.UNPROCESSABLE_ENTITY]: jsonContent(
       createErrorSchema(createUnitSchema).or(createErrorSchema(IdParamsSchema)),
       "Validation error(s)",
+    ),
+  },
+});
+
+export const getImageUploadUrl = createRoute({
+  path: "/api/owners/properties/{id}/images/presigned-url",
+  method: "post",
+  tags: ["Properties"],
+  request: {
+    params: IdParamsSchema,
+    body: jsonContentRequired(getUploadUrlSchema, "Create image upload URL"),
+  },
+  responses: {
+    [StatusCodes.OK]: jsonContent(
+      z.object({ uploadUrl: z.string(), key: z.string() }),
+      "Presigned URL generated",
+    ),
+  },
+});
+
+export const createPropertyImage = createRoute({
+  path: "/api/owners/properties/{id}/images",
+  method: "post",
+  tags: ["Property Images"],
+  request: {
+    params: IdParamsSchema,
+    body: jsonContentRequired(createPropertyImageSchema, "Image metadata"),
+  },
+  responses: {
+    [StatusCodes.CREATED]: jsonContent(
+      z.object({ data: selectPropertyImageSchema }),
+      "Image saved",
+    ),
+  },
+});
+
+export const listPropertyImages = createRoute({
+  path: "/api/owners/properties/{id}/images",
+  method: "get",
+  tags: ["Property Images"],
+  request: { params: IdParamsSchema },
+  responses: {
+    [StatusCodes.OK]: jsonContent(
+      z.object({ data: z.array(selectPropertyImageSchema) }),
+      "List images",
+    ),
+  },
+});
+
+export const deletePropertyImage = createRoute({
+  path: "/api/owners/properties/{id}/images/{imageId}",
+  method: "delete",
+  tags: ["Property Images"],
+  request: {
+    params: IdParamsSchema.extend({
+      imageId: z.coerce.number().openapi({
+        param: { name: "imageId", in: "path", required: true },
+        required: ["imageId"],
+        example: 42,
+      }),
+    }),
+  },
+  responses: {
+    [StatusCodes.OK]: jsonContent(
+      z.object({ success: z.boolean() }),
+      "Image deleted",
     ),
   },
 });

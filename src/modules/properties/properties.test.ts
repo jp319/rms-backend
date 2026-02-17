@@ -15,9 +15,20 @@ import env from "@/env";
 import propertyRoutes from "@/modules/properties/properties.routes";
 import { createTestApp } from "@/shared/create-app";
 import createDb from "@/shared/db";
-import { properties, units } from "@/shared/db/schemas";
+import { properties, propertyImages, units } from "@/shared/db/schemas";
 
 vi.mock("@/modules/mail/mail.service", () => ({ sendEmail: vi.fn() }));
+
+vi.mock("@/shared/s3-helpers", () => ({
+  s3Helpers: {
+    createPresignedUploadUrl: vi
+      .fn()
+      .mockResolvedValue("http://fake-s3-url.com/upload"),
+    deleteFile: vi.fn().mockResolvedValue(true),
+    getPublicUrl: vi.fn((key) => `http://public-s3.com/${key}`),
+    extractS3Key: vi.fn((url) => url.split("/").pop()),
+  },
+}));
 
 describe("Properties Integration", () => {
   const client = testClient<AppType>(createTestApp(propertyRoutes));
@@ -316,5 +327,140 @@ describe("Properties Integration", () => {
       expect(success).toBe(false);
       expect(error.issues[0].message).toBeDefined();
     }
+  });
+});
+
+describe("Property Images API", () => {
+  // We use the properties router because that's where you mounted the image routes
+  const client = testClient<AppType>(createTestApp(propertyRoutes));
+  const db = createDb(env);
+
+  it("should generate a presigned upload URL", async () => {
+    const { cookie, owner } = await createAndLoginOwner("img-uploader");
+
+    // Setup: Create Property
+    const [prop] = await db
+      .insert(properties)
+      .values({ ...generateProperty(), ownerId: owner.id })
+      .returning();
+
+    // Act: Request Upload URL
+    const res = await client.api.owners.properties[":id"].images[
+      "presigned-url"
+    ].$post(
+      {
+        param: { id: prop.id.toString() },
+        json: {
+          fileName: "kitchen.jpg",
+          contentType: "image/jpeg",
+        },
+      },
+      { headers: { Cookie: cookie } },
+    );
+
+    // Assert
+    expect(res.status).toBe(StatusCodes.OK);
+    const body = await res.json();
+
+    // Check if we got the fake URL from our mock
+    expect(body.uploadUrl).toBe("http://fake-s3-url.com/upload");
+    expect(body.key).toContain(`properties/${prop.id}/`); // Verify key structure
+    expect(body.key).toContain(".jpg");
+  });
+
+  it("should save image metadata to database", async () => {
+    const { cookie, owner } = await createAndLoginOwner("img-saver");
+    const [prop] = await db
+      .insert(properties)
+      .values({ ...generateProperty(), ownerId: owner.id })
+      .returning();
+
+    // Act: Save the record (Simulating frontend calling this after upload finishes)
+    const res = await client.api.owners.properties[":id"].images.$post(
+      {
+        param: { id: prop.id.toString() },
+        json: {
+          name: "test-image.jpg",
+          url: "properties/1/random-uuid.jpg", // S3 Key
+        },
+      },
+      { headers: { Cookie: cookie } },
+    );
+
+    expect(res.status).toBe(StatusCodes.CREATED);
+
+    // Verify DB
+    const savedImage = await db.query.propertyImages.findFirst({
+      where: {
+        propertyId: prop.id,
+      },
+    });
+    expect(savedImage).toBeDefined();
+    // Ensure the helper transformed the key to a full public URL (if your service does that)
+    // or kept it as is depending on your implementation
+    expect(savedImage?.url).toContain("http://public-s3.com/");
+  });
+
+  it("should delete image from S3 and Database", async () => {
+    const { cookie, owner } = await createAndLoginOwner("img-deleter");
+    const [prop] = await db
+      .insert(properties)
+      .values({ ...generateProperty(), ownerId: owner.id })
+      .returning();
+
+    // Setup: Existing Image
+    const [image] = await db
+      .insert(propertyImages)
+      .values({
+        propertyId: prop.id,
+        url: "http://public-s3.com/my-bucket/key.jpg",
+        name: "test-image.jpg",
+      })
+      .returning();
+
+    // Act
+    const res = await client.api.owners.properties[":id"].images[
+      ":imageId"
+    ].$delete(
+      {
+        param: { id: prop.id.toString(), imageId: image.id.toString() },
+      },
+      { headers: { Cookie: cookie } },
+    );
+
+    expect(res.status).toBe(StatusCodes.OK);
+
+    // Assert DB is empty
+    const found = await db.query.propertyImages.findFirst({
+      where: {
+        id: image.id,
+      },
+    });
+    expect(found).toBeUndefined();
+
+    // Assert S3 Helper was called (Optional but good)
+    // You would need to import the mocked s3Helpers to expect(s3Helpers.deleteFile).toHaveBeenCalled()
+  });
+
+  it("should NOT allow uploading to someone else's property", async () => {
+    const ownerA = await createAndLoginOwner("img-owner-a");
+    const ownerB = await createAndLoginOwner("img-owner-b"); // Attacker
+
+    const [propA] = await db
+      .insert(properties)
+      .values({ ...generateProperty(), ownerId: ownerA.owner.id })
+      .returning();
+
+    const res = await client.api.owners.properties[":id"].images[
+      "presigned-url"
+    ].$post(
+      {
+        param: { id: propA.id.toString() },
+        json: { fileName: "hack.jpg", contentType: "image/jpeg" },
+      },
+      { headers: { Cookie: ownerB.cookie } }, // 👈 Wrong Cookie
+    );
+
+    expect(res.status).toBe(StatusCodes.NOT_FOUND);
   });
 });

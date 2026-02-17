@@ -7,6 +7,7 @@ import type { AppBindings } from "@/shared/types";
 
 import * as contracts from "@/modules/properties/properties.contracts";
 import { propertiesService } from "@/modules/properties/properties.service";
+import { propertyImagesService } from "@/modules/property-images/property-images.service";
 import { createRouter } from "@/shared/create-app";
 
 const checkOwner = (c: Context<AppBindings>) => {
@@ -65,6 +66,41 @@ const router = createRouter()
       validated,
     );
     return c.json({ data }, StatusCodes.CREATED);
+  })
+
+  .openapi(contracts.getImageUploadUrl, async (c) => {
+    const owner = checkOwner(c);
+    const { id } = c.req.valid("param");
+    const { fileName, contentType } = c.req.valid("json");
+    const data = await propertyImagesService.getUploadUrl(
+      id,
+      owner.id,
+      fileName,
+      contentType,
+    );
+    return c.json(data, StatusCodes.OK);
+  })
+
+  .openapi(contracts.createPropertyImage, async (c) => {
+    const owner = checkOwner(c);
+    const { id } = c.req.valid("param");
+    const validated = c.req.valid("json");
+    const data = await propertyImagesService.create(id, owner.id, validated);
+    return c.json({ data }, StatusCodes.CREATED);
+  })
+
+  .openapi(contracts.listPropertyImages, async (c) => {
+    const owner = checkOwner(c);
+    const { id } = c.req.valid("param");
+    const data = await propertyImagesService.findAll(id, owner.id);
+    return c.json({ data }, StatusCodes.OK);
+  })
+
+  .openapi(contracts.deletePropertyImage, async (c) => {
+    const owner = checkOwner(c);
+    const { id, imageId } = c.req.valid("param");
+    await propertyImagesService.delete(imageId, id, owner.id);
+    return c.json({ success: true }, StatusCodes.OK);
   });
 
 export type AppType = typeof router;
